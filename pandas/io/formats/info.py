@@ -495,6 +495,37 @@ class DataFrameInfo(_BaseInfo):
         deep = self.memory_usage == "deep"
         return self.data.memory_usage(index=True, deep=deep).sum()
 
+    
+    def to_frame(self, *, show_counts: bool | None = None) -> DataFrame:
+        """
+        Build a DataFrame summarizing this DataFrame's columns.
+
+        Returns a DataFrame with one row per column, containing the
+        column name, dtype, non-null count (optional), and memory usage
+        (optional), mirroring what `.info()` prints as text.
+        """
+        from pandas.core.frame import DataFrame as _DataFrame
+
+        if show_counts is None:
+            show_counts = True
+
+        data: dict[str, list] = {
+            "Column": list(self.ids),
+            "Dtype": [pprint_thing(d) for d in self.dtypes],
+        }
+        if show_counts:
+            data["Non-Null Count"] = list(self.non_null_counts)
+
+        result = _DataFrame(data)
+
+        if self.memory_usage:
+            deep = self.memory_usage == "deep"
+            # per-column memory usage, excluding the index (index is a
+            # separate concept from any one column)
+            per_col_mem = self.data.memory_usage(index=False, deep=deep)
+            result["Memory Usage"] = per_col_mem.to_numpy()
+
+        return result
     def render(
         self,
         *,
