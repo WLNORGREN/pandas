@@ -569,19 +569,28 @@ class SeriesInfo(_BaseInfo):
         max_cols: int | None = None,
         verbose: bool | None = None,
         show_counts: bool | None = None,
-    ) -> None:
+        as_frame: bool = False,
+    ) -> DataFrame | None:
         if max_cols is not None:
             raise ValueError(
                 "Argument `max_cols` can only be passed "
                 "in DataFrame.info, not Series.info"
             )
+        if as_frame:
+            data = {
+                "Non-Null Count": [self.data.count()],
+                "Dtype": [pprint_thing(self.data.dtype)],
+            }
+            from pandas.core.frame import DataFrame as _DataFrame
+            return _DataFrame(data, index=[self.data.name])
+
         printer = _SeriesInfoPrinter(
             info=self,
             verbose=verbose,
             show_counts=show_counts,
         )
         printer.to_buffer(buf)
-
+        return None
     @property
     def non_null_counts(self) -> list[int]:
         return [self.data.count()]
