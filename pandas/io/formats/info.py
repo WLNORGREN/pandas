@@ -435,7 +435,8 @@ class _BaseInfo(ABC):
         max_cols: int | None,
         verbose: bool | None,
         show_counts: bool | None,
-    ) -> None:
+        as_frame: bool = False,
+    ) -> DataFrame | None:
         pass
 
 
